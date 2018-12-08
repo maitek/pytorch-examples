@@ -50,7 +50,7 @@ def main():
 
     # Setup test data loader
     test_data = datasets.MNIST('./data', train=False, download=True, transform=image_transforms)
-    test_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, **gpu_args)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, **gpu_args)
     
     # Initialize model on device
     model = Net().to(device)
