@@ -50,6 +50,19 @@ class Net(nn.Module):
         dist = scipy.spatial.distance_matrix(coord, self.target_centers.X)
         return np.argmin(dist, 1)
 
+def input_mixup(data, target):
+    # input mix up
+    batch_size = data.shape[0]
+    permutation = np.random.permutation(batch_size)
+    target_other = target[permutation]
+    data_other = data[permutation,:]
+
+    alpha = np.random.rand(batch_size).astype(np.float32)
+
+    data_mix = np.multiply(data,alpha[:,np.newaxis,np.newaxis,np.newaxis]) + np.multiply(data_other,1-alpha[:,np.newaxis,np.newaxis,np.newaxis])
+    target_mix = np.multiply(target,alpha[:,np.newaxis]) + np.multiply(target_other,1-alpha[:,np.newaxis])
+    return data_mix, target_mix 
+
 def main():
 
     # Initilize hyper parameters
@@ -92,15 +105,14 @@ def main():
         model.train()
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = data.to(device), target.to(device)
-            #import pdb; pdb.set_trace()
+            
             
             optimizer.zero_grad()
             output = model(data)
 
             # Regression towards target class centers
             target_c = model.get_target_center(target)
-
-            target_c_other = target_c
+            data, target_c = input_mixup(data,target_c)
 
             loss = F.mse_loss(output, target_c)
             loss.backward()
